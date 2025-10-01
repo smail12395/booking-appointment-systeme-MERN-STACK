@@ -1,40 +1,8 @@
 import { useContext, useEffect, useRef } from "react";
 import { AppContext } from "../context/AppContext";
+import { fetchMoroccoTime } from "../utils/timeHelpers";
 
-const TIME_APIS = [
-  "https://worldtimeapi.org/api/timezone/Africa/Casablanca",
-  "https://www.timeapi.io/api/Time/current/zone?timeZone=Africa/Casablanca",
-  "https://worldclockapi.com/api/json/cet/now"
-];
 
-const fetchMoroccoTime = async () => {
-  for (const url of TIME_APIS) {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
-
-      const res = await fetch(url, { signal: controller.signal });
-      clearTimeout(timeout);
-
-      if (!res.ok) throw new Error("Failed to fetch time");
-
-      const data = await res.json();
-
-      let date;
-      if (data.datetime) date = new Date(data.datetime);
-      else if (data.dateTime) date = new Date(data.dateTime);
-      else if (data.currentDateTime) date = new Date(data.currentDateTime);
-      else throw new Error("Unknown API response format");
-
-      console.log(`✅ Morocco time fetched from API: ${url}`);
-      return date;
-    } catch (err) {
-      console.warn(`API failed (${url}):`, err.message);
-    }
-  }
-  console.warn("All APIs failed, falling back to local time");
-  return new Date();
-};
 
 const generateSlots = (date, isToday, startTime, endTime, slotInterval, changeSys, docInfo) => {
   const [startHour, startMinute] = startTime.split(":").map(Number);

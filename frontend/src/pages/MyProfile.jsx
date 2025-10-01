@@ -76,18 +76,7 @@ const MyProfile = () => {
       <p className="text-gray-800">{userData.email}</p>
 
       <p className="text-gray-600">Phone Number:</p>
-      {isEdit ? (
-        <input
-          type="text"
-          value={userData.phoneNumber}
-          onChange={e =>
-            setUserData(prev => ({ ...prev, phoneNumber: e.target.value }))
-          }
-          className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-        />
-      ) : (
-        <p className="text-gray-800">{userData.phoneNumber}</p>
-      )}
+      <p className="text-gray-800">{userData.phoneNumber}</p>
 
       <p className="text-gray-600">Address:</p>
       {isEdit ? (

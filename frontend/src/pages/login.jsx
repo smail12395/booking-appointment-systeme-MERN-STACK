@@ -49,7 +49,7 @@ const Login = () => {
 
   useEffect(()=>{
     if(token){
-      navigate('/doctors')
+      navigate('/my-profile')
     }
   },[token])
   return (

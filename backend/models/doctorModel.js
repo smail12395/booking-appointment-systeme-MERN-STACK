@@ -15,6 +15,10 @@ const doctorSchema = new mongoose.Schema({
     address: {type:Object ,required:true, },
     date: {type:Number ,required:true, },
     slots_booked: {type:Object, default:{}},
+    mapLocation: { 
+        type:String, 
+        default:"https://www.google.com/maps/@30.388643,-9.483490,15z"
+    },
 },{minimize:false})
 
 const doctorModel = mongoose.models.doctor || mongoose.model("doctor", doctorSchema)

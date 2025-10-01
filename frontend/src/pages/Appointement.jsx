@@ -5,69 +5,158 @@ import { assets } from "../assets/assets";
 import BookingSlots from "./BookingSlots";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { fetchMoroccoTime } from "../utils/timeHelpers"; 
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 const Appointement = () => {
+  const redIcon = new L.Icon({
+  iconUrl: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+});
+
   const [slotsByDay, setSlotsByDay] = useState([]);
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [selectedTime, setSelectedTime] = useState(null);
   const [loadingSlots, setLoadingSlots] = useState(true);
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
+
+  const [currentUser, setCurrentUser] = useState(null);
+
+const fetchCurrentUser = async () => {
+  if (!token) return;
+  try {
+    const { data } = await axios.get(`${backendUrl}/api/user/me`, {
+      headers: { token }
+    });
+    if (data.success) setCurrentUser(data.user);
+  } catch (error) {
+    console.log("Error fetching user:", error.message);
+  }
+};
+
+    const resolveShortUrlToLatLng = async (shortUrl) => {
+    try {
+      const response = await axios.get(shortUrl, { maxRedirects: 0, validateStatus: null });
+      const finalUrl = response.headers.location;
+      if (!finalUrl) return null;
+
+      const match = finalUrl.match(/@([-.\d]+),([-.\d]+)/);
+      if (match) return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
+      return null;
+    } catch (err) {
+      console.log("Error resolving short URL:", err.message);
+      return null;
+    }
+  };
 
   const navigate = useNavigate()
 
-  const { docId } = useParams();
+  const { docId, docLastName } = useParams();
   const { doctors, currencySymbole, backendUrl, token, getDoctorsData } = useContext(AppContext);
   const [docInfo, setDocInfo] = useState(null);
 
-  const fetchDocInfo = async () => {
-    const doc = doctors.find(doc => doc._id === docId);
-    setDocInfo(doc);
-  };
+const slugFromUrl = docLastName || docId; 
+const fetchDocInfo = async () => {
+  if (!doctors || doctors.length === 0) return;
+
+  const doc = doctors.find(doc => {
+    const lastName = doc.name.trim().split(' ').pop().toLowerCase();
+    return lastName === slugFromUrl.toLowerCase();
+  });
+
+  setDocInfo(doc);
+
+  // Default coordinates (Agadir) if anything fails
+  let defaultLat = 30.4278;
+  let defaultLng = -9.5981;
+
+  if (doc && doc.mapLocation) {
+    try {
+      // Extract lat/lng from URL: "https://www.google.com/maps/@30.388643,-9.483490,15z"
+      const match = doc.mapLocation.match(/@([-.\d]+),([-.\d]+)/);
+      if (match) {
+        setLatitude(parseFloat(match[1]));
+        setLongitude(parseFloat(match[2]));
+      } else {
+        setLatitude(defaultLat);
+        setLongitude(defaultLng);
+      }
+    } catch (err) {
+      console.log("Error parsing mapLocation:", err.message);
+      setLatitude(defaultLat);
+      setLongitude(defaultLng);
+    }
+  } else {
+    // No mapLocation in DB → fallback
+    setLatitude(defaultLat);
+    setLongitude(defaultLng);
+  }
+};
+
 
   useEffect(() => {
     fetchDocInfo();
+    fetchCurrentUser()
   }, [doctors, docId]);
 
 
 const bookAppointement = async () => {
   if (!token) {
-    toast.warn('Login to book appointment');
-    return navigate('/login');
+    toast.warn("Login to book appointment");
+    return navigate("/login");
   }
 
   if (!selectedTime) {
-    toast.warn('Please select a time slot');
+    toast.warn("Please select a time slot");
     return;
   }
 
   try {
-    const dayInfo = slotsByDay[selectedDayIndex]; // selected day
+    // ✅ Check existing appointments first
+    const { data: appData } = await axios.get(
+      `${backendUrl}/api/user/appointements`,
+      { headers: { token } }
+    );
 
-    // Slot date in day/month/year format
+    if (appData.success) {
+      for (const app of appData.appointements) {
+        if (app.docId === docId && !app.cancelled && !app.isCompleted) {
+          toast.warn("You already have appointment with this doctor");
+          navigate('/my-appointement')
+          return;
+        }
+      }
+    }
+
+    // ✅ If no active appointment → proceed booking
+    const dayInfo = slotsByDay[selectedDayIndex];
     const slotDate = `${dayInfo.dayNumber}/${dayInfo.month}/${new Date().getFullYear()}`;
-
-    // Slot time as selected (AM/PM format)
     const slotTime = selectedTime;
 
-    console.log("✅ slotDate:", slotDate);
-    console.log("✅ slotTime:", slotTime);
+    const actualDocId = docInfo._id; // always use _id
+    const { data } = await axios.post(
+      `${backendUrl}/api/user/book-appointement`,
+      { docId: actualDocId, slotDate, slotTime },
+      { headers: { token } }
+    );
 
-     const { data } = await axios.post(
-       `${backendUrl}/api/user/book-appointement`, // full URL
-       { docId, slotDate, slotTime }, // body
-       { headers: { token } } // headers
-     );
-    if(data.success){
-      toast.success(data.message)
-      getDoctorsData()
-      navigate('/my-appointement')
+    if (data.success) {
+      navigate("/my-appointement");
+      toast.success(data.message);
+      getDoctorsData();
     } else {
-      toast.error(data.message)
+      toast.error(data.message);
     }
   } catch (error) {
-    toast.error(error.message)
+    toast.error(error.message);
     console.log("Error booking appointment:", error);
   }
 };
+
 
   return docInfo && (
     <div className="bg-white p-5 rounded-xl shadow-lg group hover:shadow-2xl transition-shadow duration-500">
@@ -90,11 +179,20 @@ const bookAppointement = async () => {
             <p className="text-xs sm:text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
               {docInfo.degree} • {docInfo.speciality}
             </p>
+            <p className="text-xs sm:text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
+              Address :
+            </p>
+            <p className="text-xs sm:text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
+              {docInfo.address.line1}
+            </p>
+            <p className="text-xs sm:text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
+              {docInfo.address.line2}
+            </p>
             <button className="mt-2 px-3 py-1 bg-primary text-white text-xs font-medium rounded-full shadow-sm transform transition duration-500 hover:scale-105 hover:bg-primary/90">
               + {docInfo.experience} experience
             </button>
             <p className="text-sm font-medium text-gray-700 mt-2">
-              Appointment fee: <span className="text-primary font-semibold">{currencySymbole}{docInfo.fees}</span>
+              Appointment fee: <span className="text-primary font-semibold">{docInfo.fees} {currencySymbole}</span>
             </p>
           </div>
         </div>
@@ -113,6 +211,17 @@ const bookAppointement = async () => {
         </div>
       </div>
 
+      {currentUser && currentUser.isReported >= 4 && (
+        <p className="text-red-500 font-semibold mb-2">
+          ⚠️ You have been reported multiple times. You cannot book new appointments.{" "}
+          <span
+            onClick={() => navigate("/payment")}  // replace "/payment" with your actual route
+            className="underline cursor-pointer text-blue-600 hover:text-blue-800"
+          >
+            Click here to remove report
+          </span>
+        </p>
+      )}
       {/* Booking Slots */}
       <div className="p-4 mt-4">
         <p className="text-lg m-2 text-center font-bold">Booking Slots</p>
@@ -177,13 +286,62 @@ const bookAppointement = async () => {
       </div>
 
       {/* Confirm Button */}
+<button
+  onClick={bookAppointement}
+  type="submit"
+  disabled={currentUser && currentUser.isReported >= 4}
+  className={`bg-primary hover:bg-primary/90 text-white font-medium px-6 py-2 rounded-xl shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 mt-4
+    ${currentUser && currentUser.isReported >= 4 ? "opacity-50 cursor-not-allowed" : ""}`}
+>
+  Confirm Appointment
+</button>
+
+
+
+{/* Map */}
+{latitude && longitude && (
+  <div className="mt-4">
+    <p className="text-sm font-semibold text-gray-800 mb-2">Location</p>
+    <MapContainer
+      center={[latitude, longitude]}
+      zoom={15}
+      scrollWheelZoom={false}
+      style={{ height: "250px", width: "100%", borderRadius: "8px" }}
+    >
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
+      />
+      <Marker position={[latitude, longitude]} icon={redIcon}>
+        <Popup>{docInfo.name}</Popup>
+      </Marker>
+    </MapContainer>
+
+    {/* Copy location button */}
+    <div className="mt-3 flex items-center gap-2">
       <button
-        onClick={bookAppointement}
-        type="submit"
-        className="bg-primary hover:bg-primary/90 text-white font-medium px-6 py-2 rounded-xl shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 mt-4"
+        onClick={() => {
+          const link = `https://www.google.com/maps/@${latitude},${longitude},15z`;
+          navigator.clipboard.writeText(link);
+          toast.success("Location link copied!");
+        }}
+        className="px-4 py-2 bg-primary text-white text-sm rounded-lg shadow hover:bg-primary/90 transition"
       >
-        Confirm Appointment
+        Copy Location
       </button>
+      <a
+        href={`https://www.google.com/maps/@${latitude},${longitude},15z`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="px-4 py-2 bg-gray-200 text-sm rounded-lg shadow hover:bg-gray-300 transition"
+      >
+        Open in Google Maps
+      </a>
+    </div>
+  </div>
+)}
+
+
     </div>
   );
 };

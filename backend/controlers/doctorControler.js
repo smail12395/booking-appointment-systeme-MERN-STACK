@@ -2,6 +2,7 @@ import doctorModel from "../models/doctorModel.js";
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import appointementModel from "../models/appointementModel.js";
+import userModel from "../models/userModel.js";
 
 const changeAvailability = async (req, res) => {
     try {
@@ -63,38 +64,62 @@ const appointementsDoctor = async (req, res) => {
 // API to mark appointement complete for doctor panel 
 const appointementComplete = async (req, res) => {
     try {
-        const docId = req.doctor.docId
-        const {appointementId} = req.body
-        const appointementData = await appointementModel.findById(appointementId)
-        if(appointement && appointementData.docId === docId ){
-            await appointementModel.findByIdAndUpdate(appointementId, {isCompleted: true})
-            return res.json({success:true, message:'Appointment completed'})
+        const docId = req.doctor.docId;
+        const { appointementId } = req.body;
+        const appointementData = await appointementModel.findById(appointementId);
+
+        if (appointementData && appointementData.docId === docId) {
+            await appointementModel.findByIdAndUpdate(appointementId, { isCompleted: true });
+            return res.json({ success: true, message: 'Appointment completed' });
         } else {
-            return res.json({success:false, message:'Mark failed'})
+            return res.json({ success: false, message: 'Mark failed' });
         }
     } catch (error) {
         console.log(error);
-        res.json({success:false, message:error.message})
+        res.json({ success: false, message: error.message });
     }
-}
+};
 
-// API to Cancel appointement for doctor panel 
+
+// Cancel appointment API with slot freeing and auto-cleanup
 const appointementCancel = async (req, res) => {
     try {
-        const docId = req.doctor.docId
-        const {appointementId} = req.body
-        const appointementData = await appointementModel.findById(appointementId)
-        if(appointementData && appointementData.docId === docId ){
-            await appointementModel.findByIdAndUpdate(appointementId, {cancelled: true})
-            return res.json({success:true, message:'Appointment cancelled'})
+        const docId = req.doctor.docId;
+        const { appointementId } = req.body;
+        const appointementData = await appointementModel.findById(appointementId);
+
+        if (appointementData && appointementData.docId === docId) {
+            // Mark appointment cancelled
+            await appointementModel.findByIdAndUpdate(appointementId, { cancelled: true });
+
+            const slotDate = appointementData.slotDate;
+            const slotTime = appointementData.slotTime;
+
+            // Step 1: remove the slot from that date
+            await doctorModel.updateOne(
+                { _id: docId },
+                { $pull: { [`slots_booked.${slotDate}`]: slotTime } }
+            );
+
+            // Step 2: cleanup if array is empty
+            const doctor = await doctorModel.findById(docId);
+            if (doctor.slots_booked[slotDate] && doctor.slots_booked[slotDate].length === 0) {
+                await doctorModel.updateOne(
+                    { _id: docId },
+                    { $unset: { [`slots_booked.${slotDate}`]: "" } }
+                );
+            }
+
+            return res.json({ success: true, message: 'Appointment cancelled & slot freed' });
         } else {
-            return res.json({success:false, message:'cancellation failed'})
+            return res.json({ success: false, message: 'cancellation failed' });
         }
     } catch (error) {
         console.log(error);
-        res.json({success:false, message:error.message})
+        res.json({ success: false, message: error.message });
     }
-}
+};
+
 
 //API to get dashboard data to doctor panel
 const doctorDashboard = async (req,res) => {
@@ -150,6 +175,38 @@ const updateDoctorProfile = async (req,res) => {
         res.json({success:false, message:error.message})
     }
 }
+
+// API to report user
+const reportUser = async (req, res) => {
+  try {
+    const docId = req.doctor.docId;
+    const { appointementId } = req.body;
+
+    // get appointment data
+    const appointementData = await appointementModel.findById(appointementId);
+    if (!appointementData || appointementData.docId !== docId) {
+      return res.json({ success: false, message: "Invalid appointment" });
+    }
+
+    const userId = appointementData.userId;
+    const userData = await userModel.findById(userId);
+    if (!userData) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    // increment report count
+    userData.isReported = (userData.isReported || 0) + 1;
+    await userData.save();
+
+    return res.json({ success: true, message: "User reported successfully" });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+export { reportUser };
+
 
 export {changeAvailability, 
         doctorList, 

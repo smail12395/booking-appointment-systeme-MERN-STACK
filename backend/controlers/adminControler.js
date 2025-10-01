@@ -9,11 +9,11 @@ import userModel from '../models/userModel.js'
 // API for Adding doctor
 const addDoctor = async (req, res) => {
     try {
-        const { name, email, password, speciality, degree, experience, about, fees, address } = req.body;
+        const { name, email, password, speciality, degree, experience, about, fees, address, mapLocation } = req.body;
         const imageFile = req.file;
 
         // Checking for all data to add doctor
-        if (!name || !email || !password || !speciality || !degree || !experience || !about || !fees || !address) {
+        if (!name || !email || !password || !speciality || !degree || !experience || !about || !fees || !address || !mapLocation) {
             return res.json({ success: false, message: "Missing doctor details" });
         }
 
@@ -49,6 +49,7 @@ const addDoctor = async (req, res) => {
             about,
             fees,
             address: JSON.parse(address),
+            mapLocation,
             date: Date.now()
         };
 

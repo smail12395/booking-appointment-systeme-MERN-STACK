@@ -16,6 +16,7 @@ const AddDoctor = () => {
     const [degree,setDegree] = useState('')
     const [address1,setAddress1] = useState('')
     const [address2,setAddress2] = useState('')
+    const [mapLocation,setMapLocation] = useState('')
 
     const {backendUrl, aToken} = useContext(AdminContext)
 
@@ -36,6 +37,7 @@ const AddDoctor = () => {
             formData.append('speciality', Speciality)
             formData.append('degree', degree)
             formData.append('address', JSON.stringify({line1:address1, line2:address2}))
+            formData.append('mapLocation', mapLocation)
 
             // Log DATA
             formData.forEach((value,key)=>{
@@ -58,6 +60,7 @@ const AddDoctor = () => {
                 setAddress2('')
                 setAddress1('')
                 setAbout('')
+                setMapLocation('')
             } else{
                 toast.error(data.message)
             }
@@ -120,20 +123,49 @@ const AddDoctor = () => {
             </div>
 
             <div>
-                <div className="mb-3">
-                    <p className="text-gray-700 font-medium">Speciality</p>
-                    <select onChange={(e)=>setSpeciality(e.target.value)} value={Speciality} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none">
-                        <option value="General Physycien">General Physycien</option>
-                        <option value="General Physycien">General Physycien</option>
-                        <option value="General Physycien">General Physycien</option>
-                        <option value="General Physycien">General Physycien</option>
-                        <option value="General Physycien">General Physycien</option>
-                        <option value="General Physycien">General Physycien</option>
-                    </select>
-                </div>
+<div className="mb-3">
+  <p className="text-gray-700 font-medium">Speciality</p>
+  <select 
+    onChange={(e) => setSpeciality(e.target.value)} 
+    value={Speciality} 
+    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none"
+    required
+  >
+    <option value="">-- Select Speciality --</option>
+    <option value="General Physician">General Physician</option>
+    <option value="Cardiologist">Cardiologist</option>
+    <option value="Dermatologist">Dermatologist</option>
+    <option value="Neurologist">Neurologist</option>
+    <option value="Pediatrician">Pediatrician</option>
+    <option value="Gynecologist">Gynecologist</option>
+    <option value="Psychiatrist">Psychiatrist</option>
+    <option value="Orthopedic Surgeon">Orthopedic Surgeon</option>
+    <option value="Dentist">Dentist</option>
+    <option value="Ophthalmologist">Ophthalmologist</option>
+    <option value="ENT Specialist">ENT Specialist</option>
+    <option value="Oncologist">Oncologist</option>
+    <option value="Urologist">Urologist</option>
+    <option value="Nephrologist">Nephrologist</option>
+    <option value="Pulmonologist">Pulmonologist</option>
+    <option value="Endocrinologist">Endocrinologist</option>
+    <option value="Gastroenterologist">Gastroenterologist</option>
+    <option value="Rheumatologist">Rheumatologist</option>
+    <option value="Plastic Surgeon">Plastic Surgeon</option>
+    <option value="Radiologist">Radiologist</option>
+    <option value="Anesthesiologist">Anesthesiologist</option>
+    <option value="Emergency Medicine">Emergency Medicine</option>
+    <option value="Infectious Disease Specialist">Infectious Disease Specialist</option>
+  </select>
+</div>
+
+
                 <div className="mb-3">
                     <p className="text-gray-700 font-medium">Education</p>
                     <input onChange={(e)=>setDegree(e.target.value)} value={degree} type="text" placeholder='Education' required className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none" />
+                </div>
+                <div className="mb-3">
+                    <p className="text-gray-700 font-medium">Google Maps Link</p>
+                    <input onChange={(e)=>setMapLocation(e.target.value)} value={mapLocation} type="text" placeholder='Paste Google Maps URL here' required className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none" />
                 </div>
                 <div className="mb-3">
                     <p className="text-gray-700 font-medium">Address</p>

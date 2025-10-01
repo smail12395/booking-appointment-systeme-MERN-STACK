@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'
 import {v2 as cloudinary} from 'cloudinary'
 import doctorModel from '../models/doctorModel.js'
 import appointementModel from '../models/appointementModel.js'
+import { modelNames } from 'mongoose'
 // API to register user 
 const registerUser = async (req, res) => {
     try {
@@ -107,53 +108,75 @@ const updateProfile = async (req, res) => {
 }
 
 //API to BOOK Appointement 
+// API to BOOK Appointment
 const bookAppointement = async (req, res) => {
-    try {
-        const { docId, slotDate, slotTime, } = req.body
-        const userId = req.user.userId;
-        const docData = await doctorModel.findById(docId).select('-password')
-        // Check if doctor is availlable
-        if(!docData.available){
-            return res.json({success:false, message:'doctor not available'})
-        }
+  try {
+    const { docId, slotDate, slotTime } = req.body;
+    const userId = req.user.userId;
 
-        let slots_booked = docData.slots_booked
-        // Check for slots availability
-        if(slots_booked[slotDate]){
-            if(slots_booked[slotDate].includes(slotTime)){
-                return res.json({success:false, message:'Slot not available'})
-            } else {
-                slots_booked[slotDate].push(slotTime)
-            }
-        } else {
-            slots_booked[slotDate] = []
-            slots_booked[slotDate].push(slotTime)
-        }
-
-        const userData = await userModel.findById(userId).select('-password')
-        delete docData.slots_booked
-        let appointementData = {
-            userId,
-            docId,
-            userData,
-            docData,
-            amount:docData.fees,
-            slotTime,
-            slotDate,
-            date: Date.now()
-        }
-        const newAppointement = new appointementModel(appointementData)
-        await newAppointement.save()
-
-        // Save new slots Data in docData
-        await doctorModel.findByIdAndUpdate(docId,{slots_booked})
-
-        res.json({success:true, message:'appointement booked'})
-    } catch (error) {
-        console.log(error);
-        res.json({success:false,message:error.message})
+    const docData = await doctorModel.findById(docId).select('-password');
+    if (!docData) {
+       return res.json({ success: false, message: 'Doctor not found' });
+     }
+    if (!docData.available) {
+      return res.json({ success: false, message: 'Doctor not available' });
     }
-}
+
+    // ✅ Check if user already has an active (not cancelled, not completed) appointment with this doctor
+    const existingApp = await appointementModel.findOne({
+      userId,
+      docId,
+      cancelled: false,
+      isCompleted: false
+    });
+
+    if (existingApp) {
+      return res.json({
+        success: false,
+        message: 'You already have an appointment with this doctor'
+      });
+    }
+
+    let slots_booked = docData.slots_booked || {};
+    if (slots_booked[slotDate]?.includes(slotTime)) {
+      return res.json({ success: false, message: 'Slot not available' });
+    }
+
+    // ✅ Reserve slot
+    if (!slots_booked[slotDate]) {
+      slots_booked[slotDate] = [];
+    }
+    slots_booked[slotDate].push(slotTime);
+
+    const userData = await userModel.findById(userId).select('-password');
+    if (userData.isReported >= 4) {
+      return res.json({ success: false, message: "You are restricted from booking due to reports" });
+    }
+    delete docData.slots_booked;
+
+    const appointementData = {
+      userId,
+      docId,
+      userData,
+      docData,
+      amount: docData.fees,
+      slotTime,
+      slotDate,
+      date: Date.now()
+    };
+
+    const newAppointement = new appointementModel(appointementData);
+    await newAppointement.save();
+
+    await doctorModel.findByIdAndUpdate(docId, { slots_booked });
+
+    res.json({ success: true, message: 'Appointment booked' });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
 
 // API to get user appointement for frontend my-appointement page
 const listAppointement = async (req, res) => {
@@ -193,5 +216,18 @@ const cancelAppointement = async (req, res) => {
         res.json({ success: false, message: error.message });
     }
 }
+export const getCurrentUser = async (req, res) => {
+  try {
+    const userId = req.user.userId; // from auth middleware
+    const user = await userModel.findById(userId).select('-password'); // exclude password
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    res.json({ success: true, user });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 
 export {registerUser, loginUser, getProfile, updateProfile, bookAppointement, listAppointement, cancelAppointement}

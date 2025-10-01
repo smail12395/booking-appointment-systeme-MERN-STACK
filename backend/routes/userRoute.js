@@ -2,6 +2,7 @@ import express from 'express'
 import { bookAppointement, cancelAppointement, getProfile, listAppointement, loginUser, registerUser, updateProfile } from '../controlers/userControler.js'
 import authUser from '../midlewares/authUser.js'
 import upload from '../midlewares/multer.js'
+import { getCurrentUser } from '../controlers/userControler.js';
 
 const userRoute = express.Router()
 
@@ -13,5 +14,6 @@ userRoute.post('/update-profile', upload.single('image'),authUser, updateProfile
 userRoute.post('/book-appointement', authUser, bookAppointement)
 userRoute.get('/appointements', authUser, listAppointement)
 userRoute.post('/cancel-appointement', authUser, cancelAppointement)
+userRoute.get('/me', authUser, getCurrentUser)
 
 export default userRoute

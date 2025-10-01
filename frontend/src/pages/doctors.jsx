@@ -3,42 +3,64 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 
 const specialities = [
-  'Cardiologist',
-  'Dermatologist',
-  'Neurologist',
-  'Pediatrician',
-  'Gynecologist',
-  'General Physician'
+  "General Physycian",
+  "Cardiologist",
+  "Dermatologist",
+  "Neurologist",
+  "Pediatrician",
+  "Gynecologist",
+  "Psychiatrist",
+  "Orthopedic Surgeon",
+  "Dentist",
+  "Ophthalmologist",
+  "ENT Specialist",
+  "Oncologist",
+  "Urologist",
+  "Nephrologist",
+  "Pulmonologist",
+  "Endocrinologist",
+  "Gastroenterologist",
+  "Rheumatologist",
+  "Plastic Surgeon",
+  "Radiologist",
+  "Anesthesiologist",
+  "Emergency Medicine",
+  "Infectious Disease Specialist"
 ];
 
+const generateSlug = (fullName) => {
+  if (!fullName) return '';
+  const names = fullName.trim().split(' ');
+  const lastName = names[names.length - 1]; // أخذ الاسم الأخير
+  return lastName.toLowerCase(); // تحويله لحروف صغيرة
+};
 
 const Doctors = () => {
   const navigate = useNavigate();
   const { speciality } = useParams();
   const [filterDoc, setFilterDoc] = useState([]);
   const [activeSpeciality, setActiveSpeciality] = useState(speciality || '');
+  const [showFilters, setShowFilters] = useState(false); // للتحكم بالظهور
 
-  const {doctors} = useContext(AppContext)
+  const { doctors } = useContext(AppContext);
 
-  
-useEffect(() => {
-  setActiveSpeciality(speciality || '');
-  
-const normalize = (str) => {
-  return str
-    .toLowerCase()
-    .replace("physycien", "physician") // handle typo
-    .trim();
-};
+  useEffect(() => {
+    setActiveSpeciality(speciality || '');
 
-const filtered = speciality
-  ? doctors.filter(doc =>
-      normalize(doc.speciality).includes(normalize(speciality))
-    )
-  : doctors;
+    const normalize = (str) => {
+      return str
+        ? str.toLowerCase().replace(/\s+/g, '').trim()
+        : '';
+    };
 
-  setFilterDoc(filtered);
-}, [speciality, doctors]);
+    const filtered = speciality
+      ? doctors.filter(doc =>
+          normalize(doc.speciality).includes(normalize(speciality))
+        )
+      : doctors;
+
+    setFilterDoc(filtered);
+  }, [speciality, doctors]);
 
   const handleSpecialityClick = (spec) => {
     if (spec.toLowerCase() === activeSpeciality.toLowerCase()) {
@@ -52,19 +74,31 @@ const filtered = speciality
     <div className="p-4">
       <p className="text-lg font-medium mb-4">Browse Into the doctors speciality</p>
 
+      {/* زر الفلترة */}
+      <button
+        onClick={() => setShowFilters(!showFilters)}
+        className="mb-4 px-5 py-2 rounded-lg bg-primary text-white font-medium shadow-md hover:bg-primary/90 transition"
+      >
+        {showFilters ? "Hide Filters" : "Show Filters"}
+      </button>
+
       {/* Suggested Specialities */}
-      <div className="mb-6 flex flex-wrap gap-2">
-        {specialities.map((spec, index) => (
-          <span
-            key={index}
-            onClick={() => handleSpecialityClick(spec)}
-            className={`px-3 py-1 rounded-full cursor-pointer transition-colors duration-200
-              ${activeSpeciality.toLowerCase() === spec.toLowerCase() ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700'}`}
-          >
-            {spec}
-          </span>
-        ))}
-      </div>
+      {showFilters && (
+        <div className="mb-6 flex flex-wrap gap-2 animate-fadeIn">
+          {specialities.map((spec, index) => (
+            <span
+              key={index}
+              onClick={() => handleSpecialityClick(spec)}
+              className={`px-3 py-1 rounded-full cursor-pointer transition-colors duration-200
+                ${activeSpeciality.toLowerCase() === spec.toLowerCase()
+                  ? 'bg-primary text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+            >
+              {spec}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Doctors List */}
       {filterDoc.length === 0 ? (
@@ -74,7 +108,11 @@ const filtered = speciality
           {filterDoc.map((item, index) => (
             <div
               key={index}
-              onClick={() => navigate(`/appointement/${item._id}`)}
+              onClick={() => {
+                const lastNameSlug = generateSlug(item.name);
+                navigate(`/${lastNameSlug}`); 
+                scrollTo(0,0);
+              }}
               className="flex flex-col sm:flex-row items-center sm:items-start gap-4 bg-white p-4 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer"
             >
               <img

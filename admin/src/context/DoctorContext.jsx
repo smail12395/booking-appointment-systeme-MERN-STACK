@@ -84,6 +84,26 @@ const DoctorContextProider = (props) => {
             toast.error(error.message)
         }
     }
+
+const reportUser = async (appointementId) => {
+  try {
+    const { data } = await axios.post(
+      backendUrl + "/api/doctor/report-user",
+      { appointementId },
+      { headers: { dToken } }
+    );
+    if (data.success) {
+      toast.success(data.message);
+      getAppointements();
+    } else {
+      toast.error(data.message);
+    }
+  } catch (error) {
+    console.log(error);
+    toast.error(error.message);
+  }
+};
+
      
     const value = {
         dToken,setDToken,
@@ -95,7 +115,8 @@ const DoctorContextProider = (props) => {
         dashData,setDashData,
         getDashData,
         profileData,setProfileData,
-        getProfileData
+        getProfileData,
+        reportUser
     }
     return (
         <DoctorContext.Provider value={value}>
