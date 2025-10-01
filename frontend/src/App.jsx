@@ -12,6 +12,7 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import BookingSlots from './pages/BookingSlots'
 import { ToastContainer, toast } from 'react-toastify';
+import NotFound from './pages/NotFound';
 import 'react-toastify/dist/ReactToastify.css';
 
 const App = () => {
@@ -21,6 +22,8 @@ const App = () => {
       <Navbar />
       <hr />
       <Routes>
+        <Route path="not-found" element={<NotFound />} />
+        <Route path="*" element={<NotFound />} />
         <Route path='/' element={<Home />} />
         <Route path='/doctors' element={<Doctors />} />  
         <Route path='/doctors/:speciality' element={<Doctors />} />
@@ -31,6 +34,7 @@ const App = () => {
         <Route path='/my-appointement' element={<MyAppointement />} />
         <Route path='/appointement/:docId' element={<Appointement />} />
         <Route path='/booking' element={<BookingSlots />} />
+        
 
         <Route path='/:docLastName' element={<Appointement />} />
         

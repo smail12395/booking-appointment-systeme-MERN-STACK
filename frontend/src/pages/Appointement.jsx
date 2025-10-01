@@ -68,6 +68,11 @@ const fetchDocInfo = async () => {
     return lastName === slugFromUrl.toLowerCase();
   });
 
+  if (!doc) {
+    navigate("/not-found"); // only after searching all doctors
+    return;
+  }
+
   setDocInfo(doc);
 
   // Default coordinates (Agadir) if anything fails
