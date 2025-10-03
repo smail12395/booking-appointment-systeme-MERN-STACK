@@ -8,44 +8,58 @@ import appointementModel from '../models/appointementModel.js'
 import { modelNames } from 'mongoose'
 // API to register user 
 const registerUser = async (req, res) => {
-    try {
-        const {name, email, password, phoneNumber} = req.body
+  try {
+    const { name, email, password, phoneNumber } = req.body;
 
-        if(!name || !email || !password){
-            return res.json({success:false, message:'Missinf details'})
-        }
-        if(!validator.isEmail(email)){
-            return res.json({success:false, message:'Enter Valid Email'})
-        }
-        if (password.length < 4) {
-            return res.json({success:false, message:'Enter a Strong password'})
-        }
-        if(!validator.isMobilePhone(phoneNumber, "ar-MA")){
-            return res.json({success:false, message:'Enter a valid Moroccan phone number'})
-        }
-
-        //hashing user password
-        const salt = await bcrypt.genSalt(10)
-        const hashedPassword = await bcrypt.hash(password,salt)
-
-        const userData = {
-            name, 
-            email, 
-            password:hashedPassword,
-            phoneNumber,
-        }
-
-        const newUser = new userModel(userData)
-        const user = await newUser.save()
-
-        const token = jwt.sign({id:user._id }, process.env.JWT_SECRET)
-        res.json({success:true,token})
-
-    } catch (error) {
-        console.log(error);
-        res.json({success:false,message:error.message})
+    if (!name || !email || !password) {
+      return res.json({ success: false, message: 'Missing details' });
     }
-}
+    if (!validator.isEmail(email)) {
+      return res.json({ success: false, message: 'Enter a valid email' });
+    }
+    if (password.length < 4) {
+      return res.json({ success: false, message: 'Enter a strong password' });
+    }
+    if (!validator.isMobilePhone(phoneNumber, "ar-MA")) {
+      return res.json({ success: false, message: 'Enter a valid Moroccan phone number' });
+    }
+
+    // Check if email already exists
+    const existingUserByEmail = await userModel.findOne({ email });
+    if (existingUserByEmail) {
+      return res.json({ success: false, message: 'This email is already registered. Please log in instead.' });
+    }
+
+    // Check if phone already exists
+    const existingUserByPhone = await userModel.findOne({ phoneNumber });
+    if (existingUserByPhone) {
+      return res.json({ success: false, message: 'This phone number is already registered. Please use another one.' });
+    }
+
+    // Hashing user password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const userData = {
+      name,
+      email,
+      password: hashedPassword,
+      phoneNumber,
+    };
+
+    const newUser = new userModel(userData);
+    const user = await newUser.save();
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    res.json({ success: true, token });
+
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Server error. Please try again later." });
+  }
+};
+
+
 
 // API for user Login
 const loginUser = async (req, res) => {
@@ -54,7 +68,7 @@ const loginUser = async (req, res) => {
         const user = await userModel.findOne({email})
 
         if(!user) {
-            return res.json({success:false,message:error.message})
+            return res.json({success:false,message:'Invalid credencials'})
         } 
         const isMatch = await bcrypt.compare(password, user.password)
         if(isMatch) {

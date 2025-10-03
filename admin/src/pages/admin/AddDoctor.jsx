@@ -105,15 +105,15 @@ const AddDoctor = () => {
                     <p className="text-gray-700 font-medium">Doctor Experience</p>
                     <select onChange={(e)=>setExperience(e.target.value)} value={experience} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none">
                         <option value="1 year">1 year</option>
-                        <option value="2 year">2 year</option>
-                        <option value="3 year">3 year</option>
-                        <option value="4 year">4 year</option>
-                        <option value="5 year">5 year</option>
-                        <option value="6 year">6 year</option>
-                        <option value="7 year">7 year</option>
-                        <option value="8 year">8 year</option>
-                        <option value="9 year">9 year</option>
-                        <option value="10 year">10 year</option>
+                        <option value="2 years">2 years</option>
+                        <option value="3 years">3 years</option>
+                        <option value="4 years">4 years</option>
+                        <option value="5 years">5 years</option>
+                        <option value="6 years">6 years</option>
+                        <option value="7 years">7 years</option>
+                        <option value="8 years">8 years</option>
+                        <option value="9 years">9 years</option>
+                        <option value="10 years">10 years</option>
                     </select>
                 </div>
                 <div className="mb-3">
@@ -165,7 +165,7 @@ const AddDoctor = () => {
                 </div>
                 <div className="mb-3">
                     <p className="text-gray-700 font-medium">Google Maps Link</p>
-                    <input onChange={(e)=>setMapLocation(e.target.value)} value={mapLocation} type="text" placeholder='Paste Google Maps URL here' required className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none" />
+                    <input onChange={(e)=>setMapLocation(e.target.value)} value={mapLocation} type="text" placeholder='https://www.google.com/maps/@lat,lng' required className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none" />
                 </div>
                 <div className="mb-3">
                     <p className="text-gray-700 font-medium">Address</p>

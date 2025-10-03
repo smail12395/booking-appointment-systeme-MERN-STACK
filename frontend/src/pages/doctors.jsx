@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
+import Translated from '../components/Translated'; // ✅ الترجمة الديناميكية
 
 const specialities = [
   "General Physycian",
@@ -31,8 +32,8 @@ const specialities = [
 const generateSlug = (fullName) => {
   if (!fullName) return '';
   const names = fullName.trim().split(' ');
-  const lastName = names[names.length - 1]; // أخذ الاسم الأخير
-  return lastName.toLowerCase(); // تحويله لحروف صغيرة
+  const lastName = names[names.length - 1];
+  return lastName.toLowerCase();
 };
 
 const Doctors = () => {
@@ -40,7 +41,7 @@ const Doctors = () => {
   const { speciality } = useParams();
   const [filterDoc, setFilterDoc] = useState([]);
   const [activeSpeciality, setActiveSpeciality] = useState(speciality || '');
-  const [showFilters, setShowFilters] = useState(false); // للتحكم بالظهور
+  const [showFilters, setShowFilters] = useState(false);
 
   const { doctors } = useContext(AppContext);
 
@@ -48,9 +49,7 @@ const Doctors = () => {
     setActiveSpeciality(speciality || '');
 
     const normalize = (str) => {
-      return str
-        ? str.toLowerCase().replace(/\s+/g, '').trim()
-        : '';
+      return str ? str.toLowerCase().replace(/\s+/g, '').trim() : '';
     };
 
     const filtered = speciality
@@ -64,7 +63,7 @@ const Doctors = () => {
 
   const handleSpecialityClick = (spec) => {
     if (spec.toLowerCase() === activeSpeciality.toLowerCase()) {
-      navigate('/doctors'); // reset filter if clicking the active one
+      navigate('/doctors');
     } else {
       navigate(`/doctors/${spec}`);
     }
@@ -72,14 +71,16 @@ const Doctors = () => {
 
   return (
     <div className="p-4">
-      <p className="text-lg font-medium mb-4">Browse Into the doctors speciality</p>
+      <p className="text-lg font-medium mb-4">
+        <Translated text="Browse Into the doctors speciality" />
+      </p>
 
       {/* زر الفلترة */}
       <button
         onClick={() => setShowFilters(!showFilters)}
         className="mb-4 px-5 py-2 rounded-lg bg-primary text-white font-medium shadow-md hover:bg-primary/90 transition"
       >
-        {showFilters ? "Hide Filters" : "Show Filters"}
+        <Translated text={showFilters ? "Hide Filters" : "Show Filters"} />
       </button>
 
       {/* Suggested Specialities */}
@@ -94,7 +95,7 @@ const Doctors = () => {
                   ? 'bg-primary text-white'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
             >
-              {spec}
+              <Translated text={spec} />
             </span>
           ))}
         </div>
@@ -102,7 +103,9 @@ const Doctors = () => {
 
       {/* Doctors List */}
       {filterDoc.length === 0 ? (
-        <p className="text-center text-gray-500">There is no doctor in this speciality.</p>
+        <p className="text-center text-gray-500">
+          <Translated text="There is no doctor in this speciality." />
+        </p>
       ) : (
         <div className="flex flex-col gap-4">
           {filterDoc.map((item, index) => (
@@ -110,7 +113,7 @@ const Doctors = () => {
               key={index}
               onClick={() => {
                 const lastNameSlug = generateSlug(item.name);
-                navigate(`/${lastNameSlug}`); 
+                navigate(`/${lastNameSlug}`);
                 scrollTo(0,0);
               }}
               className="flex flex-col sm:flex-row items-center sm:items-start gap-4 bg-white p-4 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer"
@@ -128,11 +131,13 @@ const Doctors = () => {
                     }`}
                   ></span>
                   <p className="text-sm text-gray-500">
-                    {item.available === 1 ? 'Available' : 'Not Available'}
+                    <Translated text={item.available === 1 ? "Available" : "Not Available"} />
                   </p>
                 </div>
                 <p className="text-lg font-semibold text-gray-800">{item.name}</p>
-                <p className="text-sm text-gray-600">{item.speciality}</p>
+                <p className="text-sm text-gray-600">
+                  <Translated text={item.speciality} />
+                </p>
               </div>
             </div>
           ))}

@@ -9,13 +9,14 @@ import { fetchMoroccoTime } from "../utils/timeHelpers";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import Translated from "../components/Translated";
 
 const Appointement = () => {
   const redIcon = new L.Icon({
-  iconUrl: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-});
+    iconUrl: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+  });
 
   const [slotsByDay, setSlotsByDay] = useState([]);
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
@@ -26,19 +27,19 @@ const Appointement = () => {
 
   const [currentUser, setCurrentUser] = useState(null);
 
-const fetchCurrentUser = async () => {
-  if (!token) return;
-  try {
-    const { data } = await axios.get(`${backendUrl}/api/user/me`, {
-      headers: { token }
-    });
-    if (data.success) setCurrentUser(data.user);
-  } catch (error) {
-    console.log("Error fetching user:", error.message);
-  }
-};
+  const fetchCurrentUser = async () => {
+    if (!token) return;
+    try {
+      const { data } = await axios.get(`${backendUrl}/api/user/me`, {
+        headers: { token }
+      });
+      if (data.success) setCurrentUser(data.user);
+    } catch (error) {
+      console.log("Error fetching user:", error.message);
+    }
+  };
 
-    const resolveShortUrlToLatLng = async (shortUrl) => {
+  const resolveShortUrlToLatLng = async (shortUrl) => {
     try {
       const response = await axios.get(shortUrl, { maxRedirects: 0, validateStatus: null });
       const finalUrl = response.headers.location;
@@ -59,49 +60,45 @@ const fetchCurrentUser = async () => {
   const { doctors, currencySymbole, backendUrl, token, getDoctorsData } = useContext(AppContext);
   const [docInfo, setDocInfo] = useState(null);
 
-const slugFromUrl = docLastName || docId; 
-const fetchDocInfo = async () => {
-  if (!doctors || doctors.length === 0) return;
+  const slugFromUrl = docLastName || docId; 
+  const fetchDocInfo = async () => {
+    if (!doctors || doctors.length === 0) return;
 
-  const doc = doctors.find(doc => {
-    const lastName = doc.name.trim().split(' ').pop().toLowerCase();
-    return lastName === slugFromUrl.toLowerCase();
-  });
+    const doc = doctors.find(doc => {
+      const lastName = doc.name.trim().split(' ').pop().toLowerCase();
+      return lastName === slugFromUrl.toLowerCase();
+    });
 
-  if (!doc) {
-    navigate("/not-found"); // only after searching all doctors
-    return;
-  }
+    if (!doc) {
+      navigate("/not-found");
+      return;
+    }
 
-  setDocInfo(doc);
+    setDocInfo(doc);
 
-  // Default coordinates (Agadir) if anything fails
-  let defaultLat = 30.4278;
-  let defaultLng = -9.5981;
+    let defaultLat = 30.4278;
+    let defaultLng = -9.5981;
 
-  if (doc && doc.mapLocation) {
-    try {
-      // Extract lat/lng from URL: "https://www.google.com/maps/@30.388643,-9.483490,15z"
-      const match = doc.mapLocation.match(/@([-.\d]+),([-.\d]+)/);
-      if (match) {
-        setLatitude(parseFloat(match[1]));
-        setLongitude(parseFloat(match[2]));
-      } else {
+    if (doc && doc.mapLocation) {
+      try {
+        const match = doc.mapLocation.match(/@([-.\d]+),([-.\d]+)/);
+        if (match) {
+          setLatitude(parseFloat(match[1]));
+          setLongitude(parseFloat(match[2]));
+        } else {
+          setLatitude(defaultLat);
+          setLongitude(defaultLng);
+        }
+      } catch (err) {
+        console.log("Error parsing mapLocation:", err.message);
         setLatitude(defaultLat);
         setLongitude(defaultLng);
       }
-    } catch (err) {
-      console.log("Error parsing mapLocation:", err.message);
+    } else {
       setLatitude(defaultLat);
       setLongitude(defaultLng);
     }
-  } else {
-    // No mapLocation in DB → fallback
-    setLatitude(defaultLat);
-    setLongitude(defaultLng);
-  }
-};
-
+  };
 
   useEffect(() => {
     fetchDocInfo();
@@ -109,58 +106,56 @@ const fetchDocInfo = async () => {
   }, [doctors, docId]);
 
 
-const bookAppointement = async () => {
-  if (!token) {
-    toast.warn("Login to book appointment");
-    return navigate("/login");
-  }
+  const bookAppointement = async () => {
+    if (!token) {
+      toast.warn("Login to book appointment");
+      return navigate("/login");
+    }
 
-  if (!selectedTime) {
-    toast.warn("Please select a time slot");
-    return;
-  }
+    if (!selectedTime) {
+      toast.warn("Please select a time slot");
+      return;
+    }
 
-  try {
-    // ✅ Check existing appointments first
-    const { data: appData } = await axios.get(
-      `${backendUrl}/api/user/appointements`,
-      { headers: { token } }
-    );
+    try {
+      const { data: appData } = await axios.get(
+        `${backendUrl}/api/user/appointements`,
+        { headers: { token } }
+      );
 
-    if (appData.success) {
-      for (const app of appData.appointements) {
-        if (app.docId === docId && !app.cancelled && !app.isCompleted) {
-          toast.warn("You already have appointment with this doctor");
-          navigate('/my-appointement')
-          return;
+      if (appData.success) {
+        for (const app of appData.appointements) {
+          if (app.docId === docId && !app.cancelled && !app.isCompleted) {
+            toast.warn("You already have appointment with this doctor");
+            navigate('/my-appointement')
+            return;
+          }
         }
       }
+
+      const dayInfo = slotsByDay[selectedDayIndex];
+      const slotDate = `${dayInfo.dayNumber}/${dayInfo.month}/${new Date().getFullYear()}`;
+      const slotTime = selectedTime;
+
+      const actualDocId = docInfo._id;
+      const { data } = await axios.post(
+        `${backendUrl}/api/user/book-appointement`,
+        { docId: actualDocId, slotDate, slotTime },
+        { headers: { token } }
+      );
+
+      if (data.success) {
+        navigate("/my-appointement");
+        toast.success(data.message);
+        getDoctorsData();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+      console.log("Error booking appointment:", error);
     }
-
-    // ✅ If no active appointment → proceed booking
-    const dayInfo = slotsByDay[selectedDayIndex];
-    const slotDate = `${dayInfo.dayNumber}/${dayInfo.month}/${new Date().getFullYear()}`;
-    const slotTime = selectedTime;
-
-    const actualDocId = docInfo._id; // always use _id
-    const { data } = await axios.post(
-      `${backendUrl}/api/user/book-appointement`,
-      { docId: actualDocId, slotDate, slotTime },
-      { headers: { token } }
-    );
-
-    if (data.success) {
-      navigate("/my-appointement");
-      toast.success(data.message);
-      getDoctorsData();
-    } else {
-      toast.error(data.message);
-    }
-  } catch (error) {
-    toast.error(error.message);
-    console.log("Error booking appointment:", error);
-  }
-};
+  };
 
 
   return docInfo && (
@@ -185,7 +180,7 @@ const bookAppointement = async () => {
               {docInfo.degree} • {docInfo.speciality}
             </p>
             <p className="text-xs sm:text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
-              Address :
+              <Translated text="Address :" />
             </p>
             <p className="text-xs sm:text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
               {docInfo.address.line1}
@@ -194,10 +189,10 @@ const bookAppointement = async () => {
               {docInfo.address.line2}
             </p>
             <button className="mt-2 px-3 py-1 bg-primary text-white text-xs font-medium rounded-full shadow-sm transform transition duration-500 hover:scale-105 hover:bg-primary/90">
-              + {docInfo.experience} experience
+              + {docInfo.experience} <Translated text="experience" />
             </button>
             <p className="text-sm font-medium text-gray-700 mt-2">
-              Appointment fee: <span className="text-primary font-semibold">{docInfo.fees} {currencySymbole}</span>
+              <Translated text="Appointment fee:" /> <span className="text-primary font-semibold">{docInfo.fees} {currencySymbole}</span>
             </p>
           </div>
         </div>
@@ -206,52 +201,52 @@ const bookAppointement = async () => {
         <div className="flex-1 sm:w-1/2 flex flex-col justify-center transform transition duration-500 group-hover:translate-x-1">
           <div className="flex items-center gap-2 mb-2">
             <p className="text-sm sm:text-base font-semibold text-gray-800 group-hover:text-primary transition-colors">
-              About
+              <Translated text="About" />
             </p>
             <img src={assets.info_icon} alt="Info" className="w-4 h-4 opacity-80 transform transition duration-500 group-hover:rotate-6 group-hover:opacity-100"/>
           </div>
           <p className="text-xs sm:text-sm text-gray-600 leading-tight line-clamp-4 group-hover:text-gray-700 transition-colors">
-            {docInfo.about}
+            <Translated text={docInfo.about} />
           </p>
         </div>
       </div>
 
       {currentUser && currentUser.isReported >= 4 && (
         <p className="text-red-500 font-semibold mb-2">
-          ⚠️ You have been reported multiple times. You cannot book new appointments.{" "}
+          ⚠️ <Translated text="You have been reported multiple times. You cannot book new appointments." />{" "}
           <span
-            onClick={() => navigate("/payment")}  // replace "/payment" with your actual route
+            onClick={() => navigate("/payment")}
             className="underline cursor-pointer text-blue-600 hover:text-blue-800"
           >
-            Click here to remove report
+            <Translated text="Click here to remove report" />
           </span>
         </p>
       )}
       {/* Booking Slots */}
       <div className="p-4 mt-4">
-        <p className="text-lg m-2 text-center font-bold">Booking Slots</p>
+        <p className="text-lg m-2 text-center font-bold">
+          <Translated text="Booking Slots" />
+        </p>
 
-        {/* Preloader */}
         {loadingSlots && (
           <div className="flex justify-center items-center py-6">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-            <p className="ml-4 text-gray-500">Loading available slots...</p>
+            <p className="ml-4 text-gray-500">
+              <Translated text="Loading available slots..." />
+            </p>
           </div>
         )}
 
-        {/* Fetch & Store Slots */}
-          <BookingSlots 
-            docInfo={docInfo}   // ✅ pass docInfo
-            setSlotsByDay={(slots) => {
-              setSlotsByDay(slots);
-              setLoadingSlots(false);
-            }} 
-         />
+        <BookingSlots 
+          docInfo={docInfo}
+          setSlotsByDay={(slots) => {
+            setSlotsByDay(slots);
+            setLoadingSlots(false);
+          }} 
+        />
 
-        {/* Days & Times */}
         {!loadingSlots && slotsByDay.length > 0 && (
           <div className="mt-6">
-            {/* Days Block */}
             <div className="flex overflow-x-auto gap-2 mb-4 p-2">
               {slotsByDay.map((day, index) => (
                 <div
@@ -269,7 +264,6 @@ const bookAppointement = async () => {
               ))}
             </div>
 
-            {/* Times Block */}
             <div className="flex overflow-x-auto gap-2 px-2 p-2">
               {slotsByDay[selectedDayIndex].slots.length > 0 ? (
                 slotsByDay[selectedDayIndex].slots.map((time, idx) => (
@@ -283,70 +277,67 @@ const bookAppointement = async () => {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500">No slots available today.</p>
+                <p className="text-gray-500">
+                  <Translated text="No slots available today." />
+                </p>
               )}
             </div>
           </div>
         )}
       </div>
 
-      {/* Confirm Button */}
-<button
-  onClick={bookAppointement}
-  type="submit"
-  disabled={currentUser && currentUser.isReported >= 4}
-  className={`bg-primary hover:bg-primary/90 text-white font-medium px-6 py-2 rounded-xl shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 mt-4
-    ${currentUser && currentUser.isReported >= 4 ? "opacity-50 cursor-not-allowed" : ""}`}
->
-  Confirm Appointment
-</button>
-
-
-
-{/* Map */}
-{latitude && longitude && (
-  <div className="mt-4">
-    <p className="text-sm font-semibold text-gray-800 mb-2">Location</p>
-    <MapContainer
-      center={[latitude, longitude]}
-      zoom={15}
-      scrollWheelZoom={false}
-      style={{ height: "250px", width: "100%", borderRadius: "8px" }}
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
-      />
-      <Marker position={[latitude, longitude]} icon={redIcon}>
-        <Popup>{docInfo.name}</Popup>
-      </Marker>
-    </MapContainer>
-
-    {/* Copy location button */}
-    <div className="mt-3 flex items-center gap-2">
       <button
-        onClick={() => {
-          const link = `https://www.google.com/maps/@${latitude},${longitude},15z`;
-          navigator.clipboard.writeText(link);
-          toast.success("Location link copied!");
-        }}
-        className="px-4 py-2 bg-primary text-white text-sm rounded-lg shadow hover:bg-primary/90 transition"
+        onClick={bookAppointement}
+        type="submit"
+        disabled={currentUser && currentUser.isReported >= 4}
+        className={`bg-primary hover:bg-primary/90 text-white font-medium px-6 py-2 rounded-xl shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 mt-4
+          ${currentUser && currentUser.isReported >= 4 ? "opacity-50 cursor-not-allowed" : ""}`}
       >
-        Copy Location
+        <Translated text="Confirm Appointment" />
       </button>
-      <a
-        href={`https://www.google.com/maps/@${latitude},${longitude},15z`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="px-4 py-2 bg-gray-200 text-sm rounded-lg shadow hover:bg-gray-300 transition"
-      >
-        Open in Google Maps
-      </a>
-    </div>
-  </div>
-)}
 
+      {latitude && longitude && (
+        <div className="mt-4">
+          <p className="text-sm font-semibold text-gray-800 mb-2">
+            <Translated text="Location" />
+          </p>
+          <MapContainer
+            center={[latitude, longitude]}
+            zoom={15}
+            scrollWheelZoom={false}
+            style={{ height: "250px", width: "100%", borderRadius: "8px" }}
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
+            />
+            <Marker position={[latitude, longitude]} icon={redIcon}>
+              <Popup>{docInfo.name}</Popup>
+            </Marker>
+          </MapContainer>
 
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              onClick={() => {
+                const link = `https://www.google.com/maps/@${latitude},${longitude},15z`;
+                navigator.clipboard.writeText(link);
+                toast.success("Location link copied!");
+              }}
+              className="px-4 py-2 bg-primary text-white text-sm rounded-lg shadow hover:bg-primary/90 transition"
+            >
+              <Translated text="Copy Location" />
+            </button>
+            <a
+              href={`https://www.google.com/maps/@${latitude},${longitude},15z`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 bg-gray-200 text-sm rounded-lg shadow hover:bg-gray-300 transition"
+            >
+              <Translated text="Open in Google Maps" />
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -2,21 +2,62 @@ import { useContext, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { AppContext } from "../context/AppContext";
+import Translated from "../components/Translated";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [lang, setLang] = useState(localStorage.getItem("lang") || "en");
   const navigate = useNavigate();
+  const { token, setToken, userData } = useContext(AppContext);
 
-  const {token, setToken, userData} = useContext(AppContext)
+  const translations = {
+    en: {
+      Home: "Home",
+      Doctors: "Doctors",
+      About: "About",
+      Contact: "Contact",
+      "My profile": "My profile",
+      "My appointment": "My appointment",
+      Logout: "Logout",
+      "Create Account": "Create Account",
+    },
+    fr: {
+      Home: "Accueil",
+      Doctors: "Médecins",
+      About: "À propos",
+      Contact: "Contact",
+      "My profile": "Mon profil",
+      "My appointment": "Mes rendez-vous",
+      Logout: "Se déconnecter",
+      "Create Account": "Créer un compte",
+    },
+    ar: {
+      Home: "الرئيسية",
+      Doctors: "الأطباء",
+      About: "حول",
+      Contact: "اتصل بنا",
+      "My profile": "ملفي الشخصي",
+      "My appointment": "مواعيدي",
+      Logout: "تسجيل الخروج",
+      "Create Account": "إنشاء حساب",
+    },
+  };
 
-  const logout = ()=>{
-    setToken(false)
-    localStorage.removeItem('token')
-  }
+  const t = (text) => translations[lang][text] || text;
+
+  const logout = () => {
+    setToken(false);
+    localStorage.removeItem("token");
+  };
+
+  const changeLang = (newLang) => {
+    localStorage.setItem("lang", newLang);
+    setLang(newLang);
+    window.location.reload();
+  };
 
   return (
     <div className="relative">
-      {/* Overlay (blur + dark background) */}
       {menuOpen && (
         <div
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-20"
@@ -26,59 +67,53 @@ const Navbar = () => {
 
       {/* Navbar */}
       <div className="flex items-center justify-between gap-8 relative z-30">
-        {/* Logo */}
-        <img onClick={()=>navigate('/')} className="w-44 cursor-pointer m-2" src={assets.logo} alt="Logo" />
+        <img
+          onClick={() => navigate("/")}
+          className="w-44 cursor-pointer m-2"
+          src={assets.logo}
+          alt="Logo"
+        />
 
         {/* Desktop Menu */}
         <ul className="hidden md:flex justify-center items-center gap-4 font-medium">
-          <NavLink to="/" className="text-center">
-            <li className="py-1">Home</li>
-            <hr className="border-none outline-none h-0.5 bg-primary m-auto w-3/5 hidden " />
-          </NavLink>
-
-          <NavLink to="/doctors" className="text-center">
-            <li className="py-1">Doctors</li>
-            <hr className="border-none outline-none h-0.5 bg-primary m-auto w-3/5 hidden " />
-          </NavLink>
-
-          <NavLink to="/about" className="text-center">
-            <li className="py-1">About</li>
-            <hr className="border-none outline-none h-0.5 bg-primary m-auto w-3/5 hidden " />
-          </NavLink>
-
-          <NavLink to="/contact" className="text-center">
-            <li className="py-1">Contact</li>
-            <hr className="border-none outline-none h-0.5 bg-primary m-auto w-3/5 hidden " />
-          </NavLink>
+          {["Home", "Doctors", "About", "Contact"].map((item) => (
+            <NavLink key={item} to={`/${item === "Home" ? "" : item.toLowerCase()}`} className="text-center">
+              <li className="py-1">{t(item)}</li>
+              <hr className="border-none outline-none h-0.5 bg-primary m-auto w-3/5 hidden" />
+            </NavLink>
+          ))}
         </ul>
 
-        
-
-        {/* Right section (button + hamburger) */}
+        {/* Right Section */}
         <div className="flex items-center gap-4">
-          {
-            token && userData
-             ?<div className="flex items-center gap-2 cursor-pointer group relative">
-                <img className="w-8 rounded-full" src={userData.image} alt="" />
-                <img className="max-md:hidden" src={assets.dropdown_icon} alt="" />
-                <div className="absolute top-0 right-0 text-base font-medium text-gray-600 z-20 hidden sm:group-hover:block">
-                  <div className="min-w-48 bg-stone-100 rounded flex flex-col gap-4 p-4">
-                    <p onClick={()=>navigate('/my-profile')} className="hover:text-black cursor-pointer">My profile</p>
-                    <p onClick={()=>navigate('/my-appointement')} className="hover:text-black cursor-pointer">My Appointement</p>
-                    <p onClick={logout} className="hover:text-black cursor-pointer">logout</p>
-                  </div>
+          {token && userData ? (
+            <div className="flex items-center gap-2 cursor-pointer group relative">
+              <img className="w-8 rounded-full" src={userData.image} alt="" />
+              <img className="max-md:hidden" src={assets.dropdown_icon} alt="" />
+              <div className="absolute top-0 right-0 text-base font-medium text-gray-600 z-20 hidden sm:group-hover:block">
+                <div className="min-w-48 bg-stone-100 rounded flex flex-col gap-4 p-4">
+                  <p onClick={() => navigate("/my-profile")} className="hover:text-black cursor-pointer">
+                    {t("My profile")}
+                  </p>
+                  <p onClick={() => navigate("/my-appointement")} className="hover:text-black cursor-pointer">
+                    {t("My appointment")}
+                  </p>
+                  <p onClick={logout} className="hover:text-black cursor-pointer">
+                    {t("Logout")}
+                  </p>
                 </div>
-             </div>
-             :<button className="   bg-primary text-white    font-medium   rounded-full    shadow-md    hover:bg-blue-600    transition    active:scale-95 /* Mobile (smallest) */ max-sm:text-xs max-sm:px-3 max-sm:py-1.5 max-sm:rounded-md /* Small screens & tablets */ sm:text-sm sm:px-4 sm:py-2 /* Larger screens */ md:text-base md:px-6 md:py-2.5"
-               onClick={()=>navigate('/login')} >
-               Create Account
-               </button>
-          }
-        
+              </div>
+            </div>
+          ) : (
+            <button
+              className="bg-primary text-white font-medium rounded-full shadow-md hover:bg-blue-600 transition active:scale-95 max-sm:text-xs max-sm:px-3 max-sm:py-1.5 max-sm:rounded-md sm:text-sm sm:px-4 sm:py-2 md:text-base md:px-6 md:py-2.5"
+              onClick={() => navigate("/login")}
+            >
+              {t("Create Account")}
+            </button>
+          )}
 
-
-
-          {/* Hamburger (mobile only) */}
+          {/* Hamburger */}
           <button
             className="md:hidden p-2"
             onClick={() => setMenuOpen(true)}
@@ -92,16 +127,26 @@ const Navbar = () => {
               stroke="currentColor"
               className="w-6 h-6"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
         </div>
       </div>
 
+      {/* Language Selector */}
+      <div className="flex gap-2 mt-3 mb-2">
+        {["en", "fr", "ar"].map((lng) => (
+          <button
+            key={lng}
+            onClick={() => changeLang(lng)}
+            className={`px-3 py-1 text-xs rounded-md border font-medium transition-all ${
+              lang === lng ? "bg-primary text-white" : "bg-gray-100 hover:bg-gray-200"
+            }`}
+          >
+            {lng.toUpperCase()}
+          </button>
+        ))}
+      </div>
 
       {/* Sidebar */}
       <div
@@ -119,106 +164,64 @@ const Navbar = () => {
               stroke="currentColor"
               className="w-6 h-6"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
-<ul className="flex flex-col items-start gap-4 font-medium px-6">
-  <NavLink
-    to="/"
-    onClick={() => setMenuOpen(false)}
-    className={({ isActive }) => `flex items-center gap-2 ${isActive ? 'font-bold' : ''}`}
-  >
-    {({ isActive }) => (
-      <>
-        {isActive && <span className="w-2 h-2 rounded-full bg-primary inline-block"></span>}
-        <li>Home</li>
-      </>
-    )}
-  </NavLink>
 
-  <NavLink
-    to="/doctors"
-    onClick={() => setMenuOpen(false)}
-    className={({ isActive }) => `flex items-center gap-2 ${isActive ? 'font-bold' : ''}`}
-  >
-    {({ isActive }) => (
-      <>
-        {isActive && <span className="w-2 h-2 rounded-full bg-primary inline-block"></span>}
-        <li>Doctors</li>
-      </>
-    )}
-  </NavLink>
+        <ul className="flex flex-col items-start gap-4 font-medium px-6">
+          {["Home", "Doctors", "About", "Contact"].map((item) => (
+            <NavLink
+              key={item}
+              to={`/${item === "Home" ? "" : item.toLowerCase()}`}
+              onClick={() => setMenuOpen(false)}
+              className={({ isActive }) => `flex items-center gap-2 ${isActive ? "font-bold" : ""}`}
+            >
+              {({ isActive }) => (
+                <>
+                  {isActive && <span className="w-2 h-2 rounded-full bg-primary inline-block"></span>}
+                  <li>{t(item)}</li>
+                </>
+              )}
+            </NavLink>
+          ))}
 
-  <NavLink
-    to="/about"
-    onClick={() => setMenuOpen(false)}
-    className={({ isActive }) => `flex items-center gap-2 ${isActive ? 'font-bold' : ''}`}
-  >
-    {({ isActive }) => (
-      <>
-        {isActive && <span className="w-2 h-2 rounded-full bg-primary inline-block"></span>}
-        <li>About</li>
-      </>
-    )}
-  </NavLink>
+          {token && (
+            <>
+              <NavLink
+                to="/my-appointement"
+                onClick={() => setMenuOpen(false)}
+                className={({ isActive }) => `flex items-center gap-2 ${isActive ? "font-bold" : ""}`}
+              >
+                {({ isActive }) => (
+                  <>
+                    {isActive && <span className="w-2 h-2 rounded-full bg-primary inline-block"></span>}
+                    <li>{t("My appointment")}</li>
+                  </>
+                )}
+              </NavLink>
 
-  <NavLink
-    to="/contact"
-    onClick={() => setMenuOpen(false)}
-    className={({ isActive }) => `flex items-center gap-2 ${isActive ? 'font-bold' : ''}`}
-  >
-    {({ isActive }) => (
-      <>
-        {isActive && <span className="w-2 h-2 rounded-full bg-primary inline-block"></span>}
-        <li>Contact</li>
-      </>
-    )}
-  </NavLink>
+              <NavLink
+                to="/my-profile"
+                onClick={() => setMenuOpen(false)}
+                className={({ isActive }) => `flex items-center gap-2 ${isActive ? "font-bold" : ""}`}
+              >
+                {({ isActive }) => (
+                  <>
+                    {isActive && <span className="w-2 h-2 rounded-full bg-primary inline-block"></span>}
+                    <li>{t("My profile")}</li>
+                  </>
+                )}
+              </NavLink>
+            </>
+          )}
 
-  {token && (
-    <>
-      <NavLink
-        to="/my-appointement"
-        onClick={() => setMenuOpen(false)}
-        className={({ isActive }) => `flex items-center gap-2 ${isActive ? 'font-bold' : ''}`}
-      >
-        {({ isActive }) => (
-          <>
-            {isActive && <span className="w-2 h-2 rounded-full bg-primary inline-block"></span>}
-            <li>My appointment</li>
-          </>
-        )}
-      </NavLink>
-
-      <NavLink
-        to="/my-profile"
-        onClick={() => setMenuOpen(false)}
-        className={({ isActive }) => `flex items-center gap-2 ${isActive ? 'font-bold' : ''}`}
-      >
-        {({ isActive }) => (
-          <>
-            {isActive && <span className="w-2 h-2 rounded-full bg-primary inline-block"></span>}
-            <li>My profile</li>
-          </>
-        )}
-      </NavLink>
-    </>
-  )}
-
-  <NavLink
-    onClick={() => { logout(); setMenuOpen(false); }}
-    className="flex items-center gap-2"
-  >
-    <li>Logout</li>
-  </NavLink>
-</ul>
-
-
+          {token && (
+            <NavLink onClick={() => { logout(); setMenuOpen(false); }} className="flex items-center gap-2">
+              <li>{t("Logout")}</li>
+            </NavLink>
+          )}
+        </ul>
       </div>
     </div>
   );

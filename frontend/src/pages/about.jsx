@@ -1,6 +1,7 @@
 import React from "react";
 import { assets } from "../assets/assets";
 import { FaCheckCircle, FaUsers, FaLightbulb } from "react-icons/fa";
+import Translated from "../components/Translated";
 
 const About = () => {
   return (
@@ -13,13 +14,11 @@ const About = () => {
         {/* Left: Text Content */}
         <div className="flex-1 space-y-6">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 relative inline-block group">
-            About Our Platform
+            <Translated text="About Our Platform" />
             <span className="absolute left-0 -bottom-1 w-0 h-1 bg-primary transition-all group-hover:w-full"></span>
           </h2>
           <p className="text-gray-600 text-base md:text-lg leading-relaxed">
-            We provide seamless booking experiences with modern tools and a 
-            focus on efficiency. Our platform allows you to book appointments 
-            with ease while keeping you informed with real-time updates.
+            <Translated text="We provide seamless booking experiences with modern tools and a focus on efficiency. Our platform allows you to book appointments with ease while keeping you informed with real-time updates." />
           </p>
 
           {/* Feature Blocks */}
@@ -27,9 +26,11 @@ const About = () => {
             <div className="flex items-start gap-3 bg-white p-4 rounded-xl shadow-md transform transition duration-500 hover:scale-105 hover:shadow-xl">
               <FaCheckCircle className="text-primary text-3xl mt-1 animate-bounce" />
               <div>
-                <h3 className="font-semibold text-gray-900">Reliable</h3>
+                <h3 className="font-semibold text-gray-900">
+                  <Translated text="Reliable" />
+                </h3>
                 <p className="text-gray-500 text-sm mt-1">
-                  Our service ensures accurate scheduling every time.
+                  <Translated text="Our service ensures accurate scheduling every time." />
                 </p>
               </div>
             </div>
@@ -37,9 +38,11 @@ const About = () => {
             <div className="flex items-start gap-3 bg-white p-4 rounded-xl shadow-md transform transition duration-500 hover:scale-105 hover:shadow-xl">
               <FaUsers className="text-primary text-3xl mt-1 animate-pulse" />
               <div>
-                <h3 className="font-semibold text-gray-900">User-Friendly</h3>
+                <h3 className="font-semibold text-gray-900">
+                  <Translated text="User-Friendly" />
+                </h3>
                 <p className="text-gray-500 text-sm mt-1">
-                  Intuitive interface designed for everyone to navigate easily.
+                  <Translated text="Intuitive interface designed for everyone to navigate easily." />
                 </p>
               </div>
             </div>
@@ -47,9 +50,11 @@ const About = () => {
             <div className="flex items-start gap-3 bg-white p-4 rounded-xl shadow-md transform transition duration-500 hover:scale-105 hover:shadow-xl">
               <FaLightbulb className="text-primary text-3xl mt-1 animate-spin-slow" />
               <div>
-                <h3 className="font-semibold text-gray-900">Innovative</h3>
+                <h3 className="font-semibold text-gray-900">
+                  <Translated text="Innovative" />
+                </h3>
                 <p className="text-gray-500 text-sm mt-1">
-                  Constantly evolving with smart solutions and modern features.
+                  <Translated text="Constantly evolving with smart solutions and modern features." />
                 </p>
               </div>
             </div>
@@ -61,7 +66,7 @@ const About = () => {
           <div className="relative overflow-hidden rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-700">
             <img
               src={assets.about_image}
-              alt="About"
+              alt={<Translated text="About" />}
               className="w-full h-full object-cover"
             />
             {/* Decorative overlay */}
@@ -70,7 +75,7 @@ const About = () => {
 
           {/* Floating info badge */}
           <div className="absolute -bottom-6 right-4 bg-primary text-white px-4 py-2 rounded-xl shadow-lg transform rotate-2 animate-bounce">
-            Trusted by 1000+ users
+            <Translated text="Trusted by 1000+ users" />
           </div>
         </div>
       </div>

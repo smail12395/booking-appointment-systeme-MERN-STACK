@@ -1,33 +1,72 @@
 import React from "react";
 import { assets } from "../assets/assets";
 
+// ترجمة النصوص مباشرة في الصفحة
+const translations = {
+  en: {
+    "Get in Touch": "Get in Touch",
+    "Have questions or want to work together? Fill out the form below and we'll get back to you!":
+      "Have questions or want to work together? Fill out the form below and we'll get back to you!",
+    "Your Name": "Your Name",
+    "Your Email": "Your Email",
+    "Your Message": "Your Message",
+    "Send Message": "Send Message",
+    "Contact Us": "Contact Us",
+  },
+  ar: {
+    "Get in Touch": "تواصل معنا",
+    "Have questions or want to work together? Fill out the form below and we'll get back to you!":
+      "هل لديك أسئلة أو تريد العمل معنا؟ املأ النموذج أدناه وسنرد عليك!",
+    "Your Name": "اسمك",
+    "Your Email": "بريدك الإلكتروني",
+    "Your Message": "رسالتك",
+    "Send Message": "إرسال الرسالة",
+    "Contact Us": "اتصل بنا",
+  },
+  fr: {
+    "Get in Touch": "Contactez-nous",
+    "Have questions or want to work together? Fill out the form below and we'll get back to you!":
+      "Des questions ou souhaitez collaborer ? Remplissez le formulaire ci-dessous et nous vous répondrons !",
+    "Your Name": "Votre nom",
+    "Your Email": "Votre email",
+    "Your Message": "Votre message",
+    "Send Message": "Envoyer le message",
+    "Contact Us": "Contactez-nous",
+  },
+};
+
+// دالة ترجمة تعتمد على اللغة المخزنة في localStorage
+const t = (text) => {
+  const lang = localStorage.getItem("lang") || "en";
+  return translations[lang][text] || text;
+};
+
 const Contact = () => {
   return (
     <div className="bg-gray-50 min-h-screen flex items-center justify-center p-6">
       <div className="max-w-6xl w-full bg-white shadow-2xl rounded-3xl overflow-hidden flex flex-col lg:flex-row">
-        
         {/* Left: Contact Form */}
         <div className="lg:w-1/2 p-8 sm:p-12 flex flex-col justify-center space-y-6">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-            Get in Touch
-          </h2>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">{t("Get in Touch")}</h2>
           <p className="text-gray-600 mb-6">
-            Have questions or want to work together? Fill out the form below and we'll get back to you!
+            {t(
+              "Have questions or want to work together? Fill out the form below and we'll get back to you!"
+            )}
           </p>
 
           <form className="flex flex-col gap-4">
             <input
               type="text"
-              placeholder="Your Name"
+              placeholder={t("Your Name")}
               className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none transition"
             />
             <input
               type="email"
-              placeholder="Your Email"
+              placeholder={t("Your Email")}
               className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none transition"
             />
             <textarea
-              placeholder="Your Message"
+              placeholder={t("Your Message")}
               rows="5"
               className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none transition resize-none"
             ></textarea>
@@ -35,7 +74,7 @@ const Contact = () => {
               type="submit"
               className="bg-primary hover:bg-primary/90 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition-transform transform hover:scale-105 active:scale-95"
             >
-              Send Message
+              {t("Send Message")}
             </button>
           </form>
 
@@ -60,7 +99,7 @@ const Contact = () => {
         <div className="lg:w-1/2 relative">
           <img
             src={assets.contact_image}
-            alt="Contact Us"
+            alt={t("Contact Us")}
             className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
