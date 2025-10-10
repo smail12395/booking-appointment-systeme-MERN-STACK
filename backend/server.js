@@ -21,7 +21,7 @@ app.use(express.json())
 
 app.use(cors({
   origin: [
-    "https://booking-appointment-systeme-mern-st-iota.vercel.app/", // رابط الـ frontend
+    "https://booking-appointment-systeme-mern-st-iota.vercel.app", // رابط الـ frontend
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true // ضروري لو تستخدم الكوكيز أو الـ Authorization header
