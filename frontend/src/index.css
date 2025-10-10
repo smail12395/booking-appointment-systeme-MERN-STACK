@@ -5,3 +5,41 @@
 .active hr{
     @apply block;
 }
+
+@layer base {
+  /* For Webkit browsers (Chrome, Edge, Safari) */
+  ::-webkit-scrollbar {
+    width: 10px;   /* vertical */
+    height: 10px;  /* horizontal */
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: theme('colors.primary'); /* uses your Tailwind primary */
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: theme('colors.primary', 'DEFAULT');
+    opacity: 0.85;
+  }
+
+  /* For Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.primary') transparent;
+  }
+
+  /* Text Selection Styling */
+  ::selection {
+    background-color: theme('colors.primary');
+    color: #ffffff;
+  }
+  ::-moz-selection {
+    background-color: theme('colors.primary');
+    color: #ffffff;
+  }
+}

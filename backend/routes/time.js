@@ -1,12 +1,12 @@
 // backend/routes/time.js
 import express from "express";
-import fetch from "node-fetch"; // if Node.js < 18, otherwise built-in fetch
+import fetch from "node-fetch"; // if Node < 18
 const router = express.Router();
 
 const TIME_APIS = [
   "https://worldtimeapi.org/api/timezone/Africa/Casablanca",
   "https://www.timeapi.io/api/Time/current/zone?timeZone=Africa/Casablanca",
-  "https://worldclockapi.com/api/json/cet/now"
+  "https://timeapi.io/api/TimeZone/zone?timeZone=Africa/Casablanca"
 ];
 
 router.get("/morocco-time", async (req, res) => {
@@ -17,20 +17,26 @@ router.get("/morocco-time", async (req, res) => {
       const response = await fetch(url, { signal: controller.signal });
       clearTimeout(timeout);
 
-      if (!response.ok) throw new Error("Failed to fetch time");
+      if (!response.ok) throw new Error(`Failed with ${response.status}`);
+
       const data = await response.json();
+      const dateTimeStr = data.datetime || data.dateTime || data.currentDateTime;
 
-      let dateTimeStr = data.datetime || data.dateTime || data.currentDateTime;
-      if (!dateTimeStr) continue;
-
-      return res.json({ success: true, datetime: dateTimeStr });
+      if (dateTimeStr) {
+        return res.json({ success: true, datetime: dateTimeStr });
+      }
     } catch (err) {
-      console.warn(`API failed (${url}):`, err.message);
+      console.warn(`Time API failed (${url}):`, err.message);
     }
   }
 
-  // fallback to server time
-  return res.json({ success: true, datetime: new Date().toISOString() });
+  // All APIs failed → fallback to server's local time
+  return res.json({
+    success: false,
+    datetime: new Date().toISOString(),
+    message:
+      "Unable to fetch official Morocco time. Falling back to server time."
+  });
 });
 
 export default router;
