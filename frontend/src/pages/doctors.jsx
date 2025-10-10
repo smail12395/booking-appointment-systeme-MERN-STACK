@@ -1,10 +1,10 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
-import Translated from '../components/Translated'; // ✅ الترجمة الديناميكية
+import Translated from '../components/Translated'; 
 
 const specialities = [
-  "General Physycian",
+  "General Physician",
   "Cardiologist",
   "Dermatologist",
   "Neurologist",

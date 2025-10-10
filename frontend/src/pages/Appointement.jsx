@@ -5,7 +5,6 @@ import { assets } from "../assets/assets";
 import BookingSlots from "./BookingSlots";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { fetchMoroccoTime } from "../utils/timeHelpers"; 
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -177,7 +176,7 @@ const Appointement = () => {
               <img src={assets.verified_icon} alt="Verified" className="w-4 h-4 transform transition duration-500 group-hover:rotate-12"/>
             </div>
             <p className="text-xs sm:text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
-              {docInfo.degree} • {docInfo.speciality}
+              {docInfo.degree} • <Translated text={docInfo.speciality} />
             </p>
             <p className="text-xs sm:text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
               <Translated text="Address :" />
@@ -189,7 +188,7 @@ const Appointement = () => {
               {docInfo.address.line2}
             </p>
             <button className="mt-2 px-3 py-1 bg-primary text-white text-xs font-medium rounded-full shadow-sm transform transition duration-500 hover:scale-105 hover:bg-primary/90">
-              + {docInfo.experience} <Translated text="experience" />
+              + <Translated text={docInfo.experience}/> <Translated text="experience" />
             </button>
             <p className="text-sm font-medium text-gray-700 mt-2">
               <Translated text="Appointment fee:" /> <span className="text-primary font-semibold">{docInfo.fees} {currencySymbole}</span>

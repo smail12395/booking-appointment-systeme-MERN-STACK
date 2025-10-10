@@ -33,5 +33,4 @@ const SpecialityMenu = () => {
     </div>
   )
 }
-
 export default SpecialityMenu
