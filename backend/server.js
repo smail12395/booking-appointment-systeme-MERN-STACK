@@ -21,11 +21,14 @@ app.use(express.json())
 
 app.use(cors({
   origin: [
-    "https://booking-appointment-systeme-mern-st-iota.vercel.app", // رابط الفرونت على Vercel
+    "https://booking-appointment-systeme-mern-stack-213w-bxu5behfm.vercel.app", // رابط الـ frontend
   ],
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true // ضروري لو تستخدم الكوكيز أو الـ Authorization header
 }));
+
+// السماح للمتصفح بتنفيذ طلبات OPTIONS (preflight)
+app.options("*", cors());
 
 //API endpoints
 app.use('/api/admin', adminRouter)
