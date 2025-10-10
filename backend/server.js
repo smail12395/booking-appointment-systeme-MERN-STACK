@@ -42,6 +42,4 @@ app.get('/', (req,res)=>{
 
 })
 
-app.listen(port,() =>{
-    console.log('lestining at', port)
-})
+export default app;
