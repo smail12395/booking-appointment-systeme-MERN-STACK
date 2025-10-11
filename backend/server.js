@@ -12,35 +12,46 @@ import "./jobs/emailReminder.js";
 
 const app = express();
 const port = process.env.PORT || 4000;
+
 connectDB();
 connectCloudinary();
 
 app.use(express.json());
 
-// ✅ 1. استخدم regex يسمح بأي subdomain من vercel.app
+// ✅ إعداد CORS الصحيح
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://booking-appointment-systeme-mern-stack-213w-f9mhn3jln.vercel.app",
+  "https://booking-appointment-systeme-mern-stack-p1yr6kd8v.vercel.app",
+  "https://booking-appointment-systeme-mern-st.vercel.app",
+];
+
 app.use(
   cors({
-    origin: [
-      /\.vercel\.app$/, // أي نطاق فرعي من vercel.app
-      "https://booking-appointment-systeme-mern-st.vercel.app",
-      "http://localhost:5173", // في حال التجربة محليًا
-    ],
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log("❌ Blocked by CORS:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
   })
 );
 
-
-// ✅ 3. Routes
+// ✅ Routes
 app.use("/api/admin", adminRouter);
 app.use("/api/doctor", doctorRouter);
 app.use("/api/user", userRoute);
 app.use("/api/translate", translateRoutes);
 app.use("/api/time", timeRoutes);
 
-// ✅ 5. Root
+// ✅ Root Route
 app.get("/", (req, res) => {
-  res.send("Working ✅");
+  res.send("Backend Working ✅");
 });
 
+// ✅ Start Server
 app.listen(port, () => console.log(`Server running on port ${port}`));
