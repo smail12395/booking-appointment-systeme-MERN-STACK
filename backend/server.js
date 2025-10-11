@@ -29,7 +29,13 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      // allow requests with no origin (mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+
+      if (
+        origin.includes("vercel.app") ||
+        origin.includes("localhost")
+      ) {
         callback(null, true);
       } else {
         console.log("❌ Blocked by CORS:", origin);
@@ -41,6 +47,7 @@ app.use(
   })
 );
 
+
 // ✅ Routes
 app.use("/api/admin", adminRouter);
 app.use("/api/doctor", doctorRouter);
@@ -50,7 +57,7 @@ app.use("/api/time", timeRoutes);
 
 // ✅ Root Route
 app.get("/", (req, res) => {
-  res.send("Backend Working ✅");
+  res.send("Backend Working CORS ✅");
 });
 
 // ✅ Start Server
