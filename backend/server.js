@@ -24,7 +24,6 @@ app.use(cors({
   credentials: true
 }));
 
-app.options('*', cors());
 
 //API endpoints
 app.use('/api/admin', adminRouter)
@@ -37,7 +36,6 @@ app.get('/', (req,res)=>{
     res.send("Woorking")
 
 })
-app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 app.listen(port,() =>{
     console.log('lestining at', port)
