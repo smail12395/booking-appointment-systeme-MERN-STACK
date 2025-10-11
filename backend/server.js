@@ -40,9 +40,6 @@ app.use("/api/user", userRoute);
 app.use("/api/translate", translateRoutes);
 app.use("/api/time", timeRoutes);
 
-// ✅ 4. favicon لتفادي الخطأ 404
-app.get("/favicon.ico", (req, res) => res.status(204).end());
-
 // ✅ 5. Root
 app.get("/", (req, res) => {
   res.send("Working ✅");
