@@ -30,8 +30,6 @@ app.use(
   })
 );
 
-// ✅ 2. السماح بالطلبات المسبقة (preflight)
-app.options("*", cors());
 
 // ✅ 3. Routes
 app.use("/api/admin", adminRouter);
