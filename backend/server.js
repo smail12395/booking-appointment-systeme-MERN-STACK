@@ -23,10 +23,14 @@ app.use(cors({
 app.options("*", cors());
 
 // routes
+app.use('/api/admin', adminRouter)
+app.use('/api/doctor', doctorRouter)
 app.use('/api/user', userRoute)
 app.use("/api/translate", translateRoutes);
 app.use("/api/time", timeRoutes);
 
-app.get('/', (req,res)=> res.send("Working"));
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
+app.get('/', (req,res)=> res.status(200).send("Backend Working 🚀"));
 
 export default createServer(app);
