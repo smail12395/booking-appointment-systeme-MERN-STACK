@@ -18,7 +18,11 @@ connectCloudinary()
 
 //middlewares
 app.use(express.json())
-app.use(cors())
+app.use(cors({
+  origin: ["https://booking-appointment-systeme-mern-st-iota.vercel.app"],
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+  credentials: true
+}));
 
 //API endpoints
 app.use('/api/admin', adminRouter)
